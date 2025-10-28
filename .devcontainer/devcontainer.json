@@ -1,0 +1,43 @@
+{
+  "name": "Sentiment Analysis Bot",
+  "image": "mcr.microsoft.com/devcontainers/python:3.9",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.flake8Enabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-toolsai.jupyter"
+      ]
+    }
+  },
+
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "FastAPI Application",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "postCreateCommand": "pip install -r requirements.txt",
+
+  "remoteUser": "vscode"
+}
