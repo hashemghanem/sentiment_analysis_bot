@@ -1,5 +1,6 @@
 # Questions
 ### In the following command, what is the purpose of the `--enable-managed-identity`  and the ssh keys flag?
+```bash
 az aks create \
   --resource-group ml-demo-rg \
   --name ml-demo-aks \
@@ -8,9 +9,10 @@ az aks create \
   --enable-managed-identity \
   --generate-ssh-keys \
   --attach-acr mldemoacr
+```
 
 
-### in the following dep manifest, why label is needed both in metadata? also what is the fonction of readinessProbe?
+### In the following dep manifest, why label is needed both in metadata? also what is the fonction of readinessProbe?
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
