@@ -55,3 +55,4 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
 ```
+### How the postgresql is connected to the AKS, and how the secret is passed and then perceived inside the main.py file through the os.getenv("DATABASE_URL")?
