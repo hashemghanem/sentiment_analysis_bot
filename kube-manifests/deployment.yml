@@ -46,7 +46,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app:ml-api
+    app: ml-api
   ports:
   - protocol: TCP
     port: 80
