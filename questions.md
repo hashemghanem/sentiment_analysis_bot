@@ -56,3 +56,15 @@ spec:
             periodSeconds: 5
 ```
 ### How the postgresql is connected to the AKS, and how the secret is passed and then perceived inside the main.py file through the os.getenv("DATABASE_URL")?
+
+### Remove storage you created for terraform state whose name is mldemotfstate
+### try to upgrade azuerm to ~>4 and see in terraform.
+### i just created terraform but infras were already created, is there a way to create the state based on that?
+
+### Networking Challenge: Connecting AKS to PostgreSQL
+**If you used Kubenet in Phase 1:**
+- PostgreSQL needs a public endpoint OR firewall rule for AKS node IPs
+- Less secure, but works for learning
+**If you used Azure CNI + VNet in Phase 1:**
+- Can use service endpoints or private endpoints
+- More secure, production-ready
