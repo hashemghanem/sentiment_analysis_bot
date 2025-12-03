@@ -68,3 +68,26 @@ spec:
 **If you used Azure CNI + VNet in Phase 1:**
 - Can use service endpoints or private endpoints
 - More secure, production-ready
+### is there a way to automate the ingress installation with helm in terraform or in the aks manifest itself?
+
+### Can you explain me the flow of a request from the user to the API in terms of layers/protocols used? for example:
+⚙️ TCP
+    
+    ↓
+
+📦 HTTP
+
+    ↓
+
+🚦 NGINX (receives traffic, routes it)
+
+    ↓
+🎫 Ingress (in Kubernetes: defines routing rules)
+
+    ↓
+🧭 API (your application)
+
+    ↓
+🌱 REST (how your API is designed)
+
+### see how then nginx sends the request to the right pod in the cluster? is it through a clusterip service or through the ingress itself?
