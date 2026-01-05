@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: ml-api
 spec:
-  replicas: 2  # Increase to 2
+  replicas: 2
   selector:
     matchLabels:
       app: ml-api
@@ -21,7 +21,7 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: db-secret
+              name: db-secret-from-kv
               key: database-url
         resources:
           requests:
@@ -30,6 +30,17 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
+        volumeMounts:
+        - name: secrets-store
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+      volumes:
+      - name: secrets-store
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "azure-keyvault-secrets"
 ---
 apiVersion: v1
 kind: Service
@@ -80,3 +91,29 @@ spec:
       target:
         type: Utilization
         averageUtilization: 70
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-keyvault-secrets
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"
+    userAssignedIdentityID: "615d90f8-7f1f-4a55-b6a1-8600073c7d6e"
+    keyvaultName: "ml-demo-kv-1766162936"
+    cloudName: ""
+    objects: |
+      array:
+        - |
+          objectName: database-url
+          objectType: secret
+          objectVersion: ""
+    tenantId: "3b0e7247-e0d5-44bf-8ed1-d01b18d16ca2"
+  secretObjects:
+  - secretName: db-secret-from-kv
+    type: Opaque
+    data:
+    - objectName: database-url
+      key: database-url

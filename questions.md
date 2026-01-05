@@ -91,3 +91,23 @@ spec:
 🌱 REST (how your API is designed)
 
 ### see how then nginx sends the request to the right pod in the cluster? is it through a clusterip service or through the ingress itself?
+
+### annotations in ingress manifest under metadata, what are they for?
+
+### what is an app gateway?
+### AD vs RBAC vs service principal vs system assigned managed identity?
+```
+parameters:
+    usePodIdentity: "false"                  # Not using old pod identity
+    useVMManagedIdentity: "true"             # Use managed identity on VMs
+    userAssignedIdentityID: "615d90f8-..."    # Specific user-assigned managed identity ID (not system-assigned)
+```
+
+
+### used commands
+```bash
+az aks get-credentials \
+  --resource-group rg-glb-Training_Employees \
+  --name ml-demo-aks \
+  --overwrite-existing
+  ```
