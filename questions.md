@@ -103,7 +103,12 @@ parameters:
     userAssignedIdentityID: "615d90f8-..."    # Specific user-assigned managed identity ID (not system-assigned)
 ```
 
+### how to automate roles assignment to: 1)  for the managed identity in terraform? (COMING from the csi add-on) 2) for ad users in terraform to access the aks cluster? (coming from step 5.7 ClusterRole, ClusterRoleBinding, AD Group) 3) for the ci/cd pipeline to access the acr and aks? (coming from step 5.7 ServiceAccount, RoleBinding, Role)
 
+### path of a packet when sending it from a pod to another pod in another node in the same cluster?
+
+### put the clusterrole and clusterrolebinding in manifest files instead, also put the AD group creation in a terraform manifest file if possible?
+### why the pain of installing the add-on of azure monitor and application insights when we push the connection string in the main.py file is enough to send the logs to app insights?
 ### used commands
 ```bash
 az aks get-credentials \

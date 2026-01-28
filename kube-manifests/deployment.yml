@@ -14,15 +14,20 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: deletemedeleteacr.azurecr.io/ml-api:v2
+        image: deletemedeleteacr.azurecr.io/ml-api:v3
         ports:
         - containerPort: 8000
         env:
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: db-secret-from-kv
+              name: app-secrets
               key: database-url
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: appinsights-connection-string
         resources:
           requests:
             cpu: 100m
@@ -109,11 +114,15 @@ spec:
         - |
           objectName: database-url
           objectType: secret
-          objectVersion: ""
+        - |
+          objectName: appinsights-connection-string
+          objectType: secret
     tenantId: "3b0e7247-e0d5-44bf-8ed1-d01b18d16ca2"
   secretObjects:
-  - secretName: db-secret-from-kv
+  - secretName: app-secrets
     type: Opaque
     data:
     - objectName: database-url
       key: database-url
+    - objectName: appinsights-connection-string
+      key: appinsights-connection-string
