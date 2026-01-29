@@ -109,10 +109,21 @@ parameters:
 
 ### put the clusterrole and clusterrolebinding in manifest files instead, also put the AD group creation in a terraform manifest file if possible?
 ### why the pain of installing the add-on of azure monitor and application insights when we push the connection string in the main.py file is enough to send the logs to app insights?
+### ready and healthy probes difference?
+
+
 ### used commands
 ```bash
 az aks get-credentials \
   --resource-group rg-glb-Training_Employees \
   --name ml-demo-aks \
   --overwrite-existing
+
+
+  KV_NAME='ml-demo-kv-1766162936'
+  secretname1='database-url'
+  secretname2='appinsights-connection-string'
+  az keyvault secret show --vault-name $KV_NAME --name $secretname2 --query value  -o tsv
+
+
   ```

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: deletemedeleteacr.azurecr.io/ml-api:v3
+        image: deletemedeleteacr.azurecr.io/ml-api:v4
         ports:
         - containerPort: 8000
         env:
@@ -35,6 +35,22 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         volumeMounts:
         - name: secrets-store
           mountPath: "/mnt/secrets-store"
