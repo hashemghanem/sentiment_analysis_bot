@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: deletemedeleteacr.azurecr.io/ml-api:v4
+        image: deletemedeleteacr.azurecr.io/ml-api:v5
         ports:
         - containerPort: 8000
         env:
