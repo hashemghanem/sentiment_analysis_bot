@@ -110,7 +110,7 @@ parameters:
 ### put the clusterrole and clusterrolebinding in manifest files instead, also put the AD group creation in a terraform manifest file if possible?
 ### why the pain of installing the add-on of azure monitor and application insights when we push the connection string in the main.py file is enough to send the logs to app insights?
 ### ready and healthy probes difference?
-
+### add to detailed_implementation.md after step 6.3 (monitor and application insight part) the commands to see the logs in app insights from the cli, also the commands to verify good connection to database and number of predictions stored in db from the cli.
 
 ### used commands
 ```bash
@@ -124,6 +124,65 @@ az aks get-credentials \
   secretname1='database-url'
   secretname2='appinsights-connection-string'
   az keyvault secret show --vault-name $KV_NAME --name $secretname2 --query value  -o tsv
+
+
+  az acr build --registry deletemedeleteacr --image ml-api:v4 .
+
+az acr repository list --name deletemedeleteacr --output table
+
+az acr repository show-tags --name deletemedeleteacr --repository ml-api --output table
+
+kubectl get secret app-secrets -o jsonpath="{.data}" | jq 'to_entries[] | {key: .key, value: (.value | @base64d)}'
+
+Ingress_IP="9.163.231.146"
+
+kubectl exec -it ml-api-5dbb8b7897-ptv9p -- python -c '
+import os
+DATABASE_URL = os.getenv("DATABASE_URL")
+print("url:", DATABASE_URL)
+'
+database-url='postgresql://myadmin:MyDemoPassword2026@ml-demo-db.postgres.database.azure.com/predictions?sslmode=require'
+
+DB_SERVER="ml-demo-db"
+DB_NAME="predictions"
+DB_ADMIN="myadmin"
+DB_PASSWORD='MyDemoPassword2026'
+echo "6. Total predictions in database:"
+az postgres flexible-server execute \
+  --name $DB_SERVER \
+  --admin-user $DB_ADMIN \
+  --admin-password "$DB_PASSWORD" \
+  --database-name $DB_NAME \
+  --querytext "SELECT COUNT(*) as total_predictions FROM predictions;"
+echo ""
+
+echo "7. Recent predictions (last 5):"
+az postgres flexible-server execute \
+  --name $DB_SERVER \
+  --admin-user $DB_ADMIN \
+  --admin-password "$DB_PASSWORD" \
+  --database-name $DB_NAME \
+  --querytext "SELECT id, text, sentiment, confidence, timestamp FROM predictions ORDER BY timestamp DESC LIMIT 5;"
+echo ""
+
+
+APP_INSIGHTS_NAME="ml-demo-insights"
+echo ""
+echo "=== Verifying Application Insights Integration ==="
+echo ""
+
+# Check if Application Insights is receiving data
+echo "11. Recent requests in Application Insights:"
+az monitor app-insights events show \
+  --app $APP_INSIGHTS_NAME \
+  --resource-group rg-glb-Training_Employees \
+  --type requests \
+  --offset 1h \
+  --query "[].{Timestamp:timestamp, Name:request.name, ResultCode:request.resultCode, Duration:request.duration}" \
+  --output table
+echo ""
+
+
 
 
   ```

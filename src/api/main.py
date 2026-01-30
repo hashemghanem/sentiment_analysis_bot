@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import threading
 import time
 from contextlib import contextmanager
@@ -21,11 +22,27 @@ from pydantic import BaseModel
 # Setup Application Insights
 CONNECTION_STRING = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING", "")
 
-# Configure logging
+# Configure logging - ensure logs go to stdout AND Application Insights
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Always add stdout handler for container logging (kubectl logs)
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+logger.addHandler(stream_handler)
+
+# Add Application Insights handler if connection string is available
 if CONNECTION_STRING:
-    logger.addHandler(AzureLogHandler(connection_string=CONNECTION_STRING))
-    logger.setLevel(logging.INFO)
+    try:
+        azure_handler = AzureLogHandler(connection_string=CONNECTION_STRING)
+        azure_handler.setLevel(logging.INFO)
+        logger.addHandler(azure_handler)
+        logger.info("Application Insights logging configured successfully")
+    except Exception as e:
+        logger.warning(f"Failed to configure Application Insights: {e}")
 
 # Setup metrics
 stats = stats_module.stats

@@ -1731,7 +1731,34 @@ kubectl get pods -n kube-system | grep oms
 
 ### Step 6.3: Update Application to Use Application Insights
 
-Update `src/api/main.py`:
+First, update the database schema to include the `confidence` column that the enhanced API will use:
+
+```bash
+# Get PostgreSQL server details
+DB_SERVER="ml-demo-db"
+DB_NAME="predictions"
+DB_ADMIN="myadmin"
+
+# Add the confidence column to the predictions table
+az postgres flexible-server execute \
+  --name $DB_SERVER \
+  --resource-group ml-demo-rg \
+  --admin-user $DB_ADMIN \
+  --admin-password "<YourPassword>" \
+  --database-name $DB_NAME \
+  --querytext "ALTER TABLE predictions ADD COLUMN IF NOT EXISTS confidence FLOAT;"
+
+# Verify the updated schema
+az postgres flexible-server execute \
+  --name $DB_SERVER \
+  --resource-group ml-demo-rg \
+  --admin-user $DB_ADMIN \
+  --admin-password "<YourPassword>" \
+  --database-name $DB_NAME \
+  --querytext "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'predictions' ORDER BY ordinal_position;"
+```
+
+Now update `src/api/main.py`:
 
 ```python
 from fastapi import FastAPI, Response
