@@ -1,0 +1,10 @@
+integrate the improvement below in the code of image version v3 in the previous detailed Implementation Guide - phases 5,6,7. Do not write notes like this is this the good implementation of v3 with mlops best practices or anything that implies that v3 is being modified, i want to see the good v3 implementation as if it were given since the beginning. i want the final version to be a tutorial so i don't want to get distracted with the previous implementation and comments related to it.
+
+Key improvements needed:
+Connection Pooling - Use psycopg2.pool.ThreadedConnectionPool
+Graceful startup - Don't crash if DB is down, retry later
+Error isolation - Predictions succeed even if DB logging fails
+Separate probes - /health (liveness) vs /ready (readiness)
+
+This should solve:
+Opens database to entire subnet (overly permissive)

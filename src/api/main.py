@@ -9,17 +9,10 @@ from datetime import datetime
 import joblib
 import psycopg2
 from fastapi import FastAPI, Response
-from opencensus.ext.azure import metrics_exporter
-from opencensus.ext.azure.log_exporter import AzureLogHandler
-from opencensus.stats import aggregation as aggregation_module
-from opencensus.stats import measure as measure_module
-from opencensus.stats import stats as stats_module
-from opencensus.stats import view as view_module
-from opencensus.tags import tag_map as tag_map_module
 from psycopg2 import pool
 from pydantic import BaseModel
 
-# Setup Application Insights
+# Setup Application Insights with Azure Monitor OpenTelemetry
 CONNECTION_STRING = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING", "")
 
 # Configure logging - ensure logs go to stdout AND Application Insights
@@ -34,44 +27,45 @@ stream_handler.setFormatter(
 )
 logger.addHandler(stream_handler)
 
-# Add Application Insights handler if connection string is available
+# Configure Azure Monitor OpenTelemetry
 if CONNECTION_STRING:
     try:
-        azure_handler = AzureLogHandler(connection_string=CONNECTION_STRING)
-        azure_handler.setLevel(logging.INFO)
-        logger.addHandler(azure_handler)
-        logger.info("Application Insights logging configured successfully")
+        from azure.monitor.opentelemetry import configure_azure_monitor
+        from opentelemetry import trace
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+        # Configure Azure Monitor with the connection string
+        configure_azure_monitor(
+            connection_string=CONNECTION_STRING,
+            enable_live_metrics=True,
+        )
+
+        # Get tracer for custom spans
+        tracer = trace.get_tracer(__name__)
+
+        logger.info("Azure Monitor OpenTelemetry configured successfully")
+        TELEMETRY_ENABLED = True
     except Exception as e:
-        logger.warning(f"Failed to configure Application Insights: {e}")
-
-# Setup metrics
-stats = stats_module.stats
-view_manager = stats.view_manager
-
-# Create measures
-prediction_measure = measure_module.MeasureFloat(
-    "prediction_latency", "Latency of prediction requests", "ms"
-)
-
-# Create views
-prediction_view = view_module.View(
-    "prediction_latency_view",
-    "Latency of predictions",
-    [],
-    prediction_measure,
-    aggregation_module.LastValueAggregation(),
-)
-
-view_manager.register_view(prediction_view)
-
-# Create metrics exporter
-if CONNECTION_STRING:
-    exporter = metrics_exporter.new_metrics_exporter(
-        connection_string=CONNECTION_STRING
-    )
-    view_manager.register_exporter(exporter)
+        logger.warning(f"Failed to configure Azure Monitor OpenTelemetry: {e}")
+        tracer = None
+        TELEMETRY_ENABLED = False
+else:
+    logger.warning("APPLICATIONINSIGHTS_CONNECTION_STRING not set - telemetry disabled")
+    tracer = None
+    TELEMETRY_ENABLED = False
 
 app = FastAPI(title="ML Sentiment API")
+
+# Instrument FastAPI with OpenTelemetry (after app creation)
+if TELEMETRY_ENABLED:
+    try:
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+        FastAPIInstrumentor.instrument_app(app)
+        logger.info("FastAPI instrumentation enabled")
+    except Exception as e:
+        logger.warning(f"Failed to instrument FastAPI: {e}")
+
 model = joblib.load("model.pkl")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -310,13 +304,16 @@ def predict(input: TextInput):
     # Log to database (non-blocking - failures don't affect response)
     log_prediction(input.text, prediction, confidence)
 
-    # Log to Application Insights
+    # Calculate latency
     latency_ms = (time.time() - start_time) * 1000
 
-    mmap = stats.stats_recorder.new_measurement_map()
-    tmap = tag_map_module.TagMap()
-    mmap.measure_float_put(prediction_measure, latency_ms)
-    mmap.record(tmap)
+    # Log with OpenTelemetry tracing
+    if tracer:
+        with tracer.start_as_current_span("prediction_metrics") as span:
+            span.set_attribute("prediction.sentiment", prediction)
+            span.set_attribute("prediction.confidence", float(confidence))
+            span.set_attribute("prediction.latency_ms", latency_ms)
+            span.set_attribute("prediction.text_length", len(input.text))
 
     logger.info(
         f"Prediction: {prediction}, Confidence: {confidence:.2f}, Latency: {latency_ms:.2f}ms"
