@@ -30,10 +30,10 @@ spec:
               key: appinsights-connection-string
         resources:
           requests:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 416m
+            memory: 400Mi
           limits:
-            cpu: 500m
+            cpu: 600m
             memory: 512Mi
         livenessProbe:
           httpGet:
